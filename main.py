@@ -21,7 +21,6 @@ def filtrar_tabelas_reais(minimo_linhas: int, lista_tabelas: list) -> list:
     return tabelas_reais
 
 def main():
-    #Com a biblioteca tabula, o programa identifica todas as tabelas do PDF. (lattice para identificar as linhas com bordas definidas)
     try:
         print("Iniciando identificação de tabelas no PDF...")
         lista_tabelas = tabula.read_pdf(ARQUIVO_PDF, pages="all", encoding='utf-8', lattice = True)
@@ -29,7 +28,6 @@ def main():
         print(f"Erro ao ler arquivos: {e} ")
         return
 
-    #For loop para analisar se a tabela tem menor ou igual a 10 linhas (garantindo assim que seja uma tabela válida do PDF)
     tabelas_reais = filtrar_tabelas_reais(MINIMO_LINHAS, lista_tabelas)
     qtd_tabelas_reais = len(tabelas_reais)
 
@@ -39,11 +37,9 @@ def main():
 
     print(f"{qtd_tabelas_reais} Tabelas encontradas...")
 
-    #Empilha as tabelas
-    tabela_completa = pd.concat(tabelas_reais, ignore_index=True) #ignore_index deixa de resetar o index para cada linha da tabela.
+    tabela_completa = pd.concat(tabelas_reais, ignore_index=True)
 
-    #Identifica a coluna "OD" e "AMB", faz o replace de cada para o inserido no rodapé das páginas.
-    #Obs.: Utilizado regex para não ter erro do tabula ter identificado os elementos com espaço vazio por exemplo " OD"...
+    #Identifica a coluna "OD" e "AMB", faz a troca de cada para o inserido no rodapé das páginas.
     if "OD" in tabela_completa.columns:
         tabela_completa["OD"] = tabela_completa["OD"].str.replace("OD", "Seg. Odontológica", regex = True)
     if "AMB" in tabela_completa.columns:
@@ -54,12 +50,11 @@ def main():
     #Transforma para CSV a tabela completa.
     try:
         tabela_completa.to_csv(ARQUIVO_CSV, index=False, encoding='utf-8-sig')
-        print("CSV Criado: ", ARQUIVO_CSV)
+        print(f"CSV Criado: {ARQUIVO_CSV}")
 
-        #Pega o arquivo "Anexo_I.csv" e guarda dentro do arquivo zip "AnexoI_CSV.zip".
         with zipfile.ZipFile(ARQUIVO_ZIP_NOME, 'w') as arquivo_zip:
             arquivo_zip.write(ARQUIVO_CSV)
-        print("ZIP Criado: ", ARQUIVO_ZIP_NOME)
+        print(f"ZIP Criado: {ARQUIVO_ZIP_NOME}")
 
     except Exception as e:
         print(f"Erro ao salvar arquivos: {e}")
